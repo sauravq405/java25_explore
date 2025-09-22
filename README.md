@@ -1,0 +1,1 @@
+A minimal Java 25 LTS exploration project to try out new language features and improvements.
