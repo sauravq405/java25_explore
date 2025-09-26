@@ -9,34 +9,42 @@ import java.util.stream.*;
 /*
   STEPS TO RUN JAVA FLIGHT RECORDING USING JDK 25
 *
-*  1) Generate .class files using javac LatencyDemoOld.java
+*
 
-   2) Start flight recording with below command:
-   /Library/Java/JavaVirtualMachines/jdk-25.jdk/Contents/Home/bin/java \
-  -XX:StartFlightRecording:filename=latencydemo.jfr,duration=60s,settings=profile \
-  -XX:StartFlightRecording:duration=60s,jdk.MethodTiming \
-  -cp src/main/java com.java25.demo.LatencyDemo
+(Use the fully qualified class name for the selector and enable profile settings (which enable more profiling events))
+3 commands after that :
 
+javac -d . LatencyDemo.java
 
-   3) And finally execute:
-   /Library/Java/JavaVirtualMachines/jdk-25.jdk/Contents/Home/bin/jfr view method-timing latencydemo.jfr
-
-   3 commands after that :
-
-javac LatencyDemo.java
-
-java -XX:StartFlightRecording:method-timing=LatencyDemo,filename=latencydemo.jfr LatencyDemo
+java -XX:StartFlightRecording:method-timing=com.java25.demo.LatencyDemo,filename=latencydemo.jfr com.java25.demo.LatencyDemo
 
 jfr view method-timing latencydemo.jfr
 
+#############################################################################################################################################################################################
+##########################################################Troubleshooting####################################################################################################################
+#############################################################################################################################################################################################
+
+jfr summary latencydemo.jfr
+
+If you prefer to run until the app exits (no duration), use dumponexit=true so file is written without manual jcmd:
+java -XX:StartFlightRecording:settings=profile,method-timing=com.java25.demo.LatencyDemo,duration=30s,filename=latencydemo.jfr,dumponexit=true -cp . com.java25.demo.LatencyDemo
+
+If methods are short or inlined, make them observable:
+Alternative: reduce inlining (debug only):
+# discourage inlining (slower, for testing)
+java -XX:StartFlightRecording:settings=profile,method-timing=com.java25.demo.LatencyDemo,filename=latencydemo.jfr,dumponexit=true -XX:MaxInlineSize=0 -cp . com.java25.demo.LatencyDemo
+
+
+jfr summary latencydemo.jfr         # see counts; look for jdk.MethodTiming > 0
+jfr print --events jdk.MethodTiming latencydemo.jfr   # print method timing events
+# or, if none, try:
+jfr print --events jdk.MethodSample latencydemo.jfr
 *
 *
 *
 *
 *
 * */
-
-
 public class LatencyDemo {
 
 
